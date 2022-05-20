@@ -1,0 +1,39 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="18">
+            <item index="0" class="java.lang.String" itemvalue="Pillow" />
+            <item index="1" class="java.lang.String" itemvalue="coverage" />
+            <item index="2" class="java.lang.String" itemvalue="dj-database-url" />
+            <item index="3" class="java.lang.String" itemvalue="six" />
+            <item index="4" class="java.lang.String" itemvalue="pyflakes" />
+            <item index="5" class="java.lang.String" itemvalue="cffi" />
+            <item index="6" class="java.lang.String" itemvalue="psycopg2" />
+            <item index="7" class="java.lang.String" itemvalue="pycodestyle" />
+            <item index="8" class="java.lang.String" itemvalue="dj-static" />
+            <item index="9" class="java.lang.String" itemvalue="pycparser" />
+            <item index="10" class="java.lang.String" itemvalue="gunicorn" />
+            <item index="11" class="java.lang.String" itemvalue="flake8" />
+            <item index="12" class="java.lang.String" itemvalue="static3" />
+            <item index="13" class="java.lang.String" itemvalue="bcrypt" />
+            <item index="14" class="java.lang.String" itemvalue="sqlparse" />
+            <item index="15" class="java.lang.String" itemvalue="Django" />
+            <item index="16" class="java.lang.String" itemvalue="virtualenv" />
+            <item index="17" class="java.lang.String" itemvalue="pytz" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="crawler.spiders" />
+          <option value="HaterCrawl.items" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

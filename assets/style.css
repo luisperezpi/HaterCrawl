@@ -1,0 +1,124 @@
+body {
+  background-color:#d6d6d6;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+h1 {
+  margin-top: 30px;
+  margin-left: 5px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  font-size: 30px;
+  color: #292929;
+}
+h2 {
+  margin-top: 0;
+  margin-left: 5px;
+  font-size: 25px;
+  color: #3d3d3d;
+}
+h3 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #3d3d3d;
+}
+h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #3d3d3d;
+}
+.title_div{
+  margin-left: 5%;
+}
+span{
+  margin: 5px;
+  margin-left: 0;
+  margin-right: 20px;
+  display: inline-block;
+}
+p{
+  margin: 5px;
+  display: inline-block;
+}
+.custom-tabs-container {
+    width: 100%;
+}
+.custom-tabs {
+    border-top-left-radius: 3px;
+    background-color: #d6d6d6;
+    padding: 0px 0px;
+    border-bottom: 1px solid #d6d6d6;
+}
+.custom-tab {
+    color: #292929;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top: 3px solid transparent !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    border-bottom: 0px !important;
+    background-color: #c2c2c2 !important;
+    padding: 12px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+.custom-tab--selected {
+    color: #d3d3d !important;
+    background-color: #d6d6d6 !important;
+    box-shadow: 1px 1px 0px #d6d6d6;
+    border: 2px solid #696969 !important;
+}
+.graph {
+    background-color: #f4f0ec !important;
+}
+
+.input {
+  margin: 10px;
+  padding: 10px;
+  background-color: #f4f0ec;
+  color: #292929 !important;
+}
+
+button {
+  margin: 10px;
+  padding: 10px;
+  width: 220px;
+  height: 40px;
+  cursor: pointer;
+  border: 0px;
+  background-color:  #e5e4e2;
+  color: #d3d3d;
+  text-transform: uppercase;
+  font-size: 15px;
+  align-items: center;
+  justify-content: center;
+}
+.tab-div{
+    margin-top. 5px;
+}
+.domain-div-long {
+  margin: 20px;
+  padding: 20px;
+  background-color: #e5e4e2;
+}
+
+.page-div-long {
+  margin: 20px;
+  padding: 20px;
+  background-color: #e5e4e2;
+}
+
+.page-div-short {
+  margin: 10px;
+  padding: 10px;
+  background-color: #f4f0ec;
+}
+
+.text-div-short {
+  margin: 10px;
+  padding: 10px;
+  background-color: #f4f0ec;
+}
+
