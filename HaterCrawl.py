@@ -76,6 +76,18 @@ def create_db(settings):
                           FOREIGN KEY (id_in_page, page_url) REFERENCES Text(id_in_page, page_url));"""
         mycursor.execute(sql)
         mydb.commit()
+        sql = """CREATE EVENT delete_event
+                  ON SCHEDULE AT CURRENT_TIMESTAMP + INTERVAL 1 DAY
+                  ON COMPLETION PRESERVE
+                  DO
+                    BEGIN
+                      DELETE FROM Text WHERE page_url IN 
+                      (SELECT page_url FROM Page WHERE time < (CURDATE() - INTERVAL 1 DAY)
+                       AND time >= (CURDATE() - INTERVAL 1 DAY))
+                       AND label = "LABEL_O";
+                  END;"""
+        mycursor.execute(sql)
+        mydb.commit()
         mycursor.close()
         mydb.close()
     else:
@@ -155,7 +167,7 @@ def stop_reactor(settings):
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "hn:s:r:d:p:l:m:", [ "name=", "seeds=", "results=", "database=", "priority=", "inc_w=", "inc_n=", "log=", "model="])
+        opts, args = getopt.getopt(argv, "hn:s:r:d:p:l:m:j:", [ "name=", "seeds=", "results=", "database=", "priority=", "inc_w=", "inc_n=", "log=", "model=", "jobdir="])
     except getopt.GetoptError:
         print("BAD USE")
         sys.exit(2)
@@ -189,13 +201,20 @@ def main(argv):
             settings['LOG_FILE'] = "logs/" + arg
         elif opt in ("-m", "--model"):
             settings['MODEL_DIR'] = arg
+        elif opt in ("-j", "--jobdir"):
+            if os.path.isdir(arg):
+                settings['JOBDIR'] = arg
+            else:
+                os.makedirs(arg)
+                logging.info("Creating JOBDIR directory")
+                settings['JOBDIR'] = arg
 
     create_db(settings)
     configure_logging()
     runner = CrawlerRunner(settings)
     d = runner.crawl(HaterCrawlSpider)
     d.addBoth(lambda _: reactor.stop())
-    reactor.callInThread(recopilate_data, settings)
+    #reactor.callInThread(recopilate_data, settings)
     reactor.run() # the script will block here until the crawling is finished
 
 if __name__ == "__main__":

@@ -204,6 +204,7 @@ class StoringPipeline:
         url = page['page_url']
         texts = item['short_texts'] + item['long_texts']
         links = item['links']
+        links_foundin = item['links_foundin']
 
         try:
             self.mydb.commit()
@@ -224,6 +225,8 @@ class StoringPipeline:
             logging.info("Storing Links for " + url)
             for link in links:
                 self._insert_link(tx, link)
+            for link_foundin in links_foundin:
+                self._insert_link_foundin(tx, link_foundin)
             tx.close()
             self.mydb.commit()
         except Exception as e:
@@ -335,6 +338,29 @@ class StoringPipeline:
         try:
             self._retry_sql(tx,sql_template_1,
                        (item['link_url'], item['domain']))
+        except Exception as e:
+            print(str(e))
+            print(item)
+            raise e
+
+
+    #################################################################
+    #
+    #   _retry_sql: metodo
+    #       IN:     tx, cursor de pymysql
+    #               item, Link. Representa la página a almacenar
+    #
+    #       Almacena la información de un objeto Link
+    #
+    #################################################################
+    def _insert_link_foundin(self, tx, item):
+
+        sql_template_1 = 'INSERT INTO Link (link_url, score, visited, domain) ' \
+                       'VALUES (%s, 0.0, false, %s) ' \
+                       'ON DUPLICATE KEY UPDATE link_url=link_url'
+        sql_template_2 = 'INSERT INTO Link_FoundIn (id_in_page, page_url, link_url, score, visited) ' \
+                       'VALUES (%s, %s, %s, 1, false) '
+        try:
             self._retry_sql(tx,sql_template_2,
                        (item['id_in_page'], item['page_url'], item['link_url']))
         except Exception as e:
@@ -556,7 +582,7 @@ class LinkScoringPipeline:
                       'FROM Link ' \
                       'WHERE domain = %s'
         tx.execute(sql_select_links, item['page']['domain'])
-        links2 = tx.fetchall()
+        links2 = list(tx.fetchall())
         for link in item['links']+links2:
             sql_select_1 = """SELECT page_url, id_in_page 
                                FROM Link_FoundIn

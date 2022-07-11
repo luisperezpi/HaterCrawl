@@ -11,7 +11,7 @@ BOT_NAME = 'HaterCrawl'
 
 PRIORITY = "link_domain_combined"
 NUM_INTERVALS = 20
-WAIT_INTERVAL = 60
+WAIT_INTERVAL = 3600
 RESULTS_FILE = "results/hatercrawl.csv"
 LOG_FILE = "logs/hatercrawl.txt"
 SEED_FILE = "seeds.txt"
@@ -65,7 +65,7 @@ DOWNLOADER_MIDDLEWARES = {
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 16
+CONCURRENT_REQUESTS = 3
 CONCURRENT_ITEMS = 16
 
 DNS_TIMEOUT = 15

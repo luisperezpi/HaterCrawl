@@ -30,7 +30,7 @@ def generateTable(input):
 
 
 settings = get_project_settings()
-settings['MYSQL_DB'] = "bfs_8_hour"
+settings['MYSQL_DB'] = "one_week"
 
 
 def ShowDomain(cursor, domain, page_limit):
@@ -39,7 +39,7 @@ def ShowDomain(cursor, domain, page_limit):
     sql_sel_all = "SELECT COUNT(page_url) as count, AVG(score) as average FROM Page " \
               "WHERE domain = %s"
     sql_sel_pages = "SELECT title, page_url, score, found_hate_texts, time FROM Page " \
-              "WHERE domain = %s ORDER BY domain DESC LIMIT %s"
+              "WHERE domain = %s ORDER BY score DESC LIMIT %s"
     cursor.execute(sql_sel_rel, domain['domain'])
     relevant = cursor.fetchone()
     if relevant is None:
@@ -101,6 +101,7 @@ def ShowStats():
 def getInstanceName():
     return "Instance: " + settings['MYSQL_DB']
 
+
 app = Dash(__name__)
 
 
@@ -109,12 +110,24 @@ app.layout = html.Div(children=[
     dcc.Store(id='page_filters', storage_type='session'),
     dcc.Store(id='stats_filters', storage_type='session'),
     dcc.Store(id='results_filters', storage_type='session'),
+    dcc.Store(id='last_session', storage_type='local'),
+    dcc.Input(id='dummy',
+        type="text",
+        style={'display': 'none'}),
         html.Div(children=[
             html.H1(children=settings['BOT_NAME']),
             html.H2(children=getInstanceName()),
+            html.H2(children=[], id="session_div"),
             ], className="title_div"),
         html.Div(children=[
             dcc.Tabs(children=[
+                dcc.Tab(
+                    label="Novedades",
+                    children=[
+                        html.Div(
+                                id="novedades_div")
+                        ], className="custom-tab",selected_className='custom-tab--selected'
+                    ),
                 dcc.Tab(
                     label="Dominios",
                     children=[
@@ -252,8 +265,28 @@ app.layout = html.Div(children=[
         )
 ]
 )
-
 # add a click to the appropriate store.
+@app.callback(Output('last_session', 'data'),
+              Input('dummy', 'value'),
+              State('last_session', 'data'))
+def StoreSessionFilters(dummy, last_session):
+    last_session_new = {}
+    if last_session:
+        last_session_new['last_session'] = last_session['now_session']
+        last_session_new['now_session'] = datetime.now()
+    else:
+        last_session_new['last_session'] = datetime(2022,1,1)
+        last_session_new['now_session'] = datetime.now()
+    return last_session_new
+
+@app.callback(Output('novedades_div', 'children'),
+              Input('last_session', 'modified_timestamp'),
+              State('last_session', 'data'))
+def NovedadesRefresh(ts, session):
+    return []
+
+
+
 @app.callback(Output('input_domain', 'value'),
               Output('input_min_pages', 'value'),
               Output('input_start_date_domain', 'value'),
@@ -289,6 +322,7 @@ def CleanStatsFilters(limpiar):
 def CleanResultsFilters(limpiar):
     filters = {}
     return None
+
 
 # add a click to the appropriate store.
 @app.callback(Output('domain_filters', 'data'),

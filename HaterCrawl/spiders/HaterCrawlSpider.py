@@ -1,4 +1,4 @@
-from HaterCrawl.items import Text, Page, Output, Link
+from HaterCrawl.items import Text, Page, Output, Link, Link_FoundIn
 from bs4 import BeautifulSoup
 import scrapy
 from scrapy.loader import ItemLoader
@@ -263,7 +263,9 @@ class HaterCrawlSpider(scrapy.Spider):
             self.url = NextURL_antbased(self.settings)
         else:
             self.url = NextURL(self.settings)
-        yield self.request()
+        for i in range(0, self.concurrent):
+            logging.info(i)
+            yield self.request()
 
     #################################################################
     #
@@ -277,7 +279,6 @@ class HaterCrawlSpider(scrapy.Spider):
         self.error_count+=1
         logging.error(repr(failure))
         logging.error("Error count: " + str(self.error_count))
-
 
         if failure.check(HttpError):
             # Fallos por respuesta HTTP distinta a 200
@@ -352,22 +353,8 @@ class HaterCrawlSpider(scrapy.Spider):
             title = title_xpath.extract()[0]
         page.add_value('title', title)
         output['page'] = page.load_item()
-        output['short_texts'], output['long_texts'], output['links'] = self.parse_text(response)
-        limit = 0
-        esp = 0
-        for item in output['long_texts'] + output['short_texts']:
-            try:
-                if limit==50:
-                    break
-                if detect(item['text']) in self.settings['LANG_ACCEPTED']:
-                    esp+=1
-                else:
-                    esp-=1
-                limit+=1
-            except Exception as e:
-                esp-=1
-                continue
-        if esp > 0:
+        output['short_texts'], output['long_texts'], output['links'], output['links_foundin'] = self.parse_text(response)
+        if len(output['long_texts'] + output['short_texts']) > 0:
             return output
         else:
             logging.info("Recurso retirado por lenguaje no soportado " + response.url)
@@ -387,6 +374,7 @@ class HaterCrawlSpider(scrapy.Spider):
     #################################################################
     def parse_text(self, response):
         links = []
+        links_foundin = []
         short_texts = []
         long_texts = []
         page_url = response.url
@@ -399,61 +387,22 @@ class HaterCrawlSpider(scrapy.Spider):
             link_url = self.get_clean_link(page_url, option)
             if link_url is None:
                 continue
+            link = ItemLoader(Link(), option)
+            link.add_value('link_url', link_url)
+            link.add_value('domain', link_url)
+            links.append(link.load_item())
             clean_texts = self.get_clean_text(option)
-            if len(clean_texts) > 0:
-                for clean_text, type_text in clean_texts:
-                    text = ItemLoader(Text(), option)
-                    text.add_value('text', clean_text)
-                    text.add_value('page_url', page_url)
-                    text.add_value('id_in_page', i)
-                    if type_text == "long":
-                        long_texts.append(text.load_item())
-                    elif type_text == "short":
-                        if self.settings['USE_SHORT_TEXT'] == True:
-                            short_texts.append(text.load_item())
-                        else:
-                            continue
-                    else:
-                        logging.error("Leido texto de forma incorrecta " + text.load_item())
-                        continue
-                    link = ItemLoader(Link(), option)
-                    link.add_value('page_url', page_url)
-                    link.add_value('link_url', link_url)
-                    link.add_value('domain', link_url)
-                    link.add_value('id_in_page', i)
-                    links.append(link.load_item())
-                    i += 1
-            else:
-                link = ItemLoader(Link(), option)
-                link.add_value('page_url', page_url)
-                link.add_value('link_url', link_url)
-                link.add_value('domain', link_url)
-                link.add_value('id_in_page', 0)
-                links.append(link.load_item())
-
-        for option in response.xpath('//p | //h1 | //h2 | //h3 | //h4 | //span'):
-            if option.xpath("./parent::p|./parent::h1|./parent::h2|./parent::h3|./parent::h4|./parent::span|./parent::a"):
-                continue
-            clean_texts = self.get_clean_text(option)
+            found = 0
             for clean_text, type_text in clean_texts:
                 text = ItemLoader(Text(), option)
+                try:
+                    if detect(clean_text) not in self.settings['LANG_ACCEPTED']:
+                        continue
+                except Exception as e:
+                    continue
                 text.add_value('text', clean_text)
                 text.add_value('page_url', page_url)
                 text.add_value('id_in_page', i)
-
-                for item in option.xpath('.//a'):
-                    if not option.xpath("@href"):
-                        continue
-                    link_url = self.get_clean_link(page_url, option)
-                    if link_url is None:
-                        continue
-
-                    link = ItemLoader(Link(), item)
-                    link.add_value('page_url', page_url)
-                    link.add_value('id_in_page', i)
-                    link.add_value('link_url', link_url)
-                    link.add_value('domain', link_url)
-                    links.append(link.load_item())
                 if type_text == "long":
                     long_texts.append(text.load_item())
                 elif type_text == "short":
@@ -464,8 +413,58 @@ class HaterCrawlSpider(scrapy.Spider):
                 else:
                     logging.error("Leido texto de forma incorrecta " + text.load_item())
                     continue
+                found = 1
+                link_foundin = ItemLoader(Link_FoundIn(), option)
+                link_foundin.add_value('page_url', page_url)
+                link_foundin.add_value('link_url', link_url)
+                link_foundin.add_value('id_in_page', i)
+                links_foundin.append(link_foundin.load_item())
                 i += 1
-        return short_texts, long_texts, links
+            if found == 0:
+                link_foundin = ItemLoader(Link_FoundIn(), option)
+                link_foundin.add_value('page_url', page_url)
+                link_foundin.add_value('link_url', link_url)
+                link_foundin.add_value('id_in_page', 0)
+                links_foundin.append(link_foundin.load_item())
+
+        for option in response.xpath('//p | //h1 | //h2 | //h3 | //h4 | //span'):
+            if option.xpath("./parent::p|./parent::h1|./parent::h2|./parent::h3|./parent::h4|./parent::span|./parent::a"):
+                continue
+            clean_texts = self.get_clean_text(option)
+            for clean_text, type_text in clean_texts:
+                text = ItemLoader(Text(), option)
+                text.add_value('text', clean_text)
+                text.add_value('page_url', page_url)
+                text.add_value('id_in_page', i)
+                if type_text == "long":
+                    long_texts.append(text.load_item())
+                elif type_text == "short":
+                    if self.settings['USE_SHORT_TEXT'] == True:
+                        short_texts.append(text.load_item())
+                    else:
+                        continue
+                else:
+                    logging.error("Leido texto de forma incorrecta " + text.load_item())
+                    continue
+                for item in option.xpath('.//a'):
+                    if not option.xpath("@href"):
+                        continue
+                    link_url = self.get_clean_link(page_url, option)
+                    if link_url is None:
+                        continue
+
+                    link = ItemLoader(Link(), item)
+                    link.add_value('link_url', link_url)
+                    link.add_value('domain', link_url)
+                    links.append(link.load_item())
+                    link_foundin = ItemLoader(Link_FoundIn(), option)
+                    link_foundin.add_value('page_url', page_url)
+                    link_foundin.add_value('link_url', link_url)
+                    link_foundin.add_value('id_in_page', i)
+                    links_foundin.append(link_foundin.load_item())
+                i += 1
+
+        return short_texts, long_texts, links, links_foundin
 
     #################################################################
     #

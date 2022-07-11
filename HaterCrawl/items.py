@@ -17,6 +17,7 @@ class Output(Item):
     long_texts = Field()
     links = Field()
     link_path = Field()
+    links_foundin = Field()
 
 def empty_title(title):
     if title is None:
@@ -51,7 +52,7 @@ class Page(Item):
         output_processor=TakeFirst(),
     )
     title = Field(
-        input_processor=MapCompose(empty_title, remove_tags, str.lower),
+        input_processor=MapCompose(empty_title, remove_tags),
         output_processor=TakeFirst(),
     )
     source = Field(
@@ -77,13 +78,24 @@ class Text(Item):
         output_processor=TakeFirst(),
     )
     text = Field(
-        input_processor=MapCompose(str.lower),
+        input_processor=MapCompose(),
         output_processor=TakeFirst(),
     )
     label = Field()
     score = Field()
 
 class Link(Item):
+    link_url = Field(
+        input_processor=MapCompose(),
+        output_processor=TakeFirst(),
+    )
+    domain = Field(
+        input_processor=MapCompose(get_domain, str.lower),
+        output_processor=TakeFirst(),
+    )
+    score = Field()
+
+class Link_FoundIn(Item):
     page_url = Field(
         input_processor=MapCompose(str.lower),
         output_processor=TakeFirst(),
@@ -93,11 +105,7 @@ class Link(Item):
         output_processor=TakeFirst(),
     )
     link_url = Field(
-        input_processor=MapCompose(str.lower),
+        input_processor=MapCompose(),
         output_processor=TakeFirst(),
     )
-    domain = Field(
-        input_processor=MapCompose(get_domain, str.lower),
-        output_processor=TakeFirst(),
-    )
-    score = Field()
+
